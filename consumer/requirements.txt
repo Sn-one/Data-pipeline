@@ -1,0 +1,6 @@
+kafka-python
+psycopg2-binary
+pandas
+confluent-kafka
+pandas
+sqlalchemy 
