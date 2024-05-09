@@ -42,15 +42,5 @@ services:
     ports:
       - "8080:80"
 
-  consumer:
-    build:
-      context: ./consumer
-      dockerfile: Dockerfile
-    depends_on:
-      - kafka
-      - postgres
-    environment:
-      - KAFKA_BROKER=kafka:9092
-
 volumes:
   postgres-data:
