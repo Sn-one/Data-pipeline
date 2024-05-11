@@ -1,3 +1,4 @@
 Flask
 kafka-python
-
+psycopg2-binary
+pydantic-settings
