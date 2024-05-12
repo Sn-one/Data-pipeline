@@ -9,9 +9,11 @@ services:
   kafka:
     image: wurstmeister/kafka
     ports:
-      - "9092:9092"
+      - "9092:9092"    # Internal listener
+      - "9093:9093"    # External listener
     environment:
       KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:9093
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9093
@@ -21,19 +23,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
-  web:
-    build: ./server
-    ports:
-      - "8000:8000"
-    depends_on:
-      - kafka
-    environment:
-      DATABASE_HOSTNAME: ${DATABASE_HOSTNAME}
-      DATABASE_PORT: ${DATABASE_PORT}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_NAME: ${DATABASE_NAME}
-      DATABASE_USERNAME: ${DATABASE_USERNAME}
 
   postgres:
     image: postgres:16
@@ -54,6 +43,35 @@ services:
     ports:
       - "8080:80"
 
+  consumer:
+    build: ./consume
+    depends_on:
+      - kafka
+      - postgres
+    environment:
+      DATABASE_HOSTNAME: ${DATABASE_HOSTNAME}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+    env_file:
+      - .env_config
+
+  web:
+    build: ./server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+      - consumer
+    environment:
+      DATABASE_HOSTNAME: ${DATABASE_HOSTNAME}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+    env_file:
+      - .env_config
+
 volumes:
   postgres-data:
-  
